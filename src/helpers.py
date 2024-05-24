@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import uuid
 import pdb
 
 APPT_INTERVAL = 15
@@ -51,6 +52,7 @@ class Appointment:
         self.appointmentDate = apptDate  # Should be YYYY-MM-DD
         self.appointmentTime = apptTime  # Should be HH:MM
         self.bookingTime = bookingTime  # Will Be full datetimeOjb
+        self.id = str(uuid.uuid4())
 
 
 # Utility to print all Drs Schedules

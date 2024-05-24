@@ -1,0 +1,132 @@
+{
+	"info": {
+		"_postman_id": "47b43d50-839c-44db-bc05-d80d0848d411",
+		"name": "ApptScheduler",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "35129806"
+	},
+	"item": [
+		{
+			"name": "ClearDrsSchedules",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/clear",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"clear"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetOpenSlots",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/openings",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"openings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SubmitDrAvailability",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Jekyll\",\r\n    \"times\": [\r\n        {\"day\": \"2024-05-01\", \"startTime\": \"08:00\", \"endTime\": \"15:00\"},\r\n        {\"day\": \"2024-05-02\", \"startTime\": \"08:00\", \"endTime\": \"15:00\"},\r\n        {\"day\": \"2024-05-03\", \"startTime\": \"08:00\", \"endTime\": \"15:00\"}\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/submit",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"submit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "RequestAppt",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"patientName\": \"Aly\",\r\n    \"dateOfRequest\": \"2024-04-15\",\r\n    \"timeOfRequest\": \"08:03\",\r\n    \"appointmentSlot\": {\r\n        \"day\": \"2024-05-01\",\r\n        \"time\": \"08:00\",\r\n        \"drName\": \"Jekyll\"\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/reserve",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"reserve"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ConfirmAppt",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"bookingID\": \"TODO\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/confirm",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"confirm"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

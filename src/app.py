@@ -8,6 +8,7 @@ from helpers import (
     isAvailableTimeSlot,
     Appointment,
 )
+import json
 from datetime import datetime
 import pdb
 
@@ -15,8 +16,8 @@ app = Flask(__name__)
 api = Api(app)
 
 DRDICT = {}
-CONFIRMED_APPTS = []
-UNCONFIRMED_APPTS = []
+CONFIRMED_APPTS = {}
+UNCONFIRMED_APPTS = {}
 
 swagger = Swagger(app)
 
@@ -63,6 +64,76 @@ class GetDrAvailability(Resource):
         return jsonify(outDict)
 
 
+class ReserveSlot(Resource):
+    def post(self):
+        """
+        Request an appointment. Sample Valid Input is: {"patientName": "Aly","dateOfRequest": "2024-04-15", "timeOfRequest": "08:03", "appointmentSlot": {"day": "2024-05-02", "time": "08:00", "drName": "Jekyll"},
+        ---
+        responses:
+          202:
+            description: Success
+          412:
+            description: Violates 24 hour requirement
+          404:
+            description: Appointment Slot Not found
+          500:
+            description: Error
+        """
+        try:
+            dataIn = request.get_json()
+            # Confirm that it is a valid request: Reservations must be made at least 24 hours in advance
+            if not isValidDateRequest(dataIn):
+                return {
+                    "message": "Error: reservation must be made more than 24 hours in advance"
+                }, 412
+            # Confirm that all data is valid
+            if not isAvailableTimeSlot(dataIn, DRDICT):
+                return {"message": "Error: Dr or Timeslot does not exist"}, 404
+
+            # Make Booking
+            patientName = dataIn.get("patientName")
+            drName = dataIn.get("appointmentSlot")["drName"]
+            apptDate = dataIn.get("appointmentSlot")["day"]
+            apptTime = dataIn.get("appointmentSlot")["time"]
+            bookingStr = dataIn.get("dateOfRequest") + " " + dataIn.get("timeOfRequest")
+            bookingObj = datetime.strptime(bookingStr, "%Y-%m-%d %H:%M")
+            apptObj = Appointment(patientName, drName, bookingObj, apptDate, apptTime)
+            UNCONFIRMED_APPTS[apptObj.id] = apptObj
+            return {
+                "message": f"Reserved timeslot successfully",
+                "bookingID": f"{apptObj.id}",
+            }, 202
+        except:
+            return {"message": "Error setting appointment"}, 500
+
+
+class ConfirmSlot(Resource):
+    def post(self):
+        """
+        Confirm an Appointment. Input is booking ID
+        ---
+        responses:
+          200:
+            description: Confirmation Successful
+          404:
+            description: Appointment Slot Not found
+          500:
+            description: Error
+        """
+        try:
+            dataIn = request.get_json()
+            id = dataIn.get("bookingID")
+            # Confirm that it is a valid request: Reservations must be made at least 24 hours in advance
+            if id not in UNCONFIRMED_APPTS:
+                return {"message": "Booking not found"}, 404
+            CONFIRMED_APPTS[id] = UNCONFIRMED_APPTS.pop(id)
+            return {"message": "Confirmed"}, 200
+
+        except:
+            return {"message": "Error Confirming appointment"}, 500
+
+
+# Utility Endpoint
 class ClearAllDrSchedules(Resource):
     def delete(self):
         """
@@ -83,51 +154,11 @@ class ClearAllDrSchedules(Resource):
             return {"message": "Error clearing Dr Availability"}, 500
 
 
-class ReserveSlot(Resource):
-    def post(self):
-        """
-        Request an appointment. Sample Valid Input is: {"patientName": "Aly","dateOfRequest": "2024-04-15", "timeOfRequest": "08:03", "appointmentSlot": {"day": "2024-05-02", "time": "08:00", "drName": "Jekyll"},
-        ---
-        responses:
-          202:
-            description: Success
-          412:
-            description: Violates 24 hour requirement
-          404:
-            description: Appointment Slot Not found
-          500:
-            description: Error
-        """
-        try:
-            dataIn = request.get_json()
-            print(dataIn)
-            # Confirm that it is a valid request: Reservations must be made at least 24 hours in advance
-            if not isValidDateRequest(dataIn):
-                return {
-                    "message": "Error: reservation must be made more than 24 hours in advance"
-                }, 412
-            # Confirm that all data is valid
-            if not isAvailableTimeSlot(dataIn, DRDICT):
-                return {"message": "Error: Dr or Timeslot does not exist"}, 404
-
-            # Make Booking
-            patientName = dataIn.get("patientName")
-            drName = dataIn.get("appointmentSlot")["drName"]
-            apptDate = dataIn.get("appointmentSlot")["day"]
-            apptTime = dataIn.get("appointmentSlot")["time"]
-            bookingStr = dataIn.get("dateOfRequest") + " " + dataIn.get("timeOfRequest")
-            bookingObj = datetime.strptime(bookingStr, "%Y-%m-%d %H:%M")
-            apptObj = Appointment(patientName, drName, bookingObj, apptDate, apptTime)
-            UNCONFIRMED_APPTS.append(apptObj)
-            return {"message": "Reserved timeslot successfully"}, 202
-        except:
-            return {"message": "Error clearing Dr Availability"}, 500
-
-
 api.add_resource(SubmitDrAvailability, "/submit")
 api.add_resource(GetDrAvailability, "/openings")
 api.add_resource(ClearAllDrSchedules, "/clear")
 api.add_resource(ReserveSlot, "/reserve")
+api.add_resource(ConfirmSlot, "/confirm")
 
 
 def initializeDrs():

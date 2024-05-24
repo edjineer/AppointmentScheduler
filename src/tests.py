@@ -193,8 +193,11 @@ class EndpointTests(unittest.TestCase):
         response = requests.post(BASE + "reserve", json=req3In4)
         self.assertEqual(response.status_code, 404)
 
+        response = requests.post(BASE + "confirm", json={"bookingID": "1234"})
+        self.assertEqual(response.status_code, 404)
+
     # Test Successes
-    def test_requirement3General(self):
+    def test_requirement3And4General(self):
         # Initialize App
         response = requests.delete(BASE + "clear")
         self.assertEqual(response.status_code, 200)
@@ -207,7 +210,7 @@ class EndpointTests(unittest.TestCase):
         response = requests.post(BASE + "submit", json=req3InitJekyll)
         self.assertEqual(response.status_code, 202)
 
-        # Basic Case
+        # Basic Case Request
         req3In2 = {
             "patientName": "Aly",
             "dateOfRequest": "2024-04-15",
@@ -220,18 +223,12 @@ class EndpointTests(unittest.TestCase):
         }
         response = requests.post(BASE + "reserve", json=req3In2)
         self.assertEqual(response.status_code, 202)
+        bookingCode = response.json()["bookingID"]
 
-    # def test_r4(self):
-    #     print("r4")
-    #     pass
-
-    # def test_a1(self):
-    #     print("a1")
-    #     pass
-
-    # def test_a2(self):
-    #     print("a2")
-    #     pass
+        # Basic Case Confirm
+        req4In1 = {"bookingID": f"{bookingCode}"}
+        response = requests.post(BASE + "confirm", json=req4In1)
+        self.assertEqual(response.status_code, 200)
 
 
 class HelperUnitTests(unittest.TestCase):
@@ -248,16 +245,6 @@ class HelperUnitTests(unittest.TestCase):
         end2 = "14:14"
         out2 = ["13:15", "13:30", "13:45"]
         self.assertEqual(timeSplitter(start2, end2), out2)
-
-        pass
-
-    # def test_dayBefore(self):
-    #     print("TST")
-    #     pass
-
-    # def test_expiration(self):
-    #     print("TST")
-    #     pass
 
 
 if __name__ == "__main__":
