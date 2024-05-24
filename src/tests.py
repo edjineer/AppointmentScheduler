@@ -151,33 +151,75 @@ class EndpointTests(unittest.TestCase):
         response = requests.post(BASE + "reserve", json=req3In2)
         self.assertEqual(response.status_code, 412)
 
-    # # Test the 24 hour time window
-    # def test_requirement3General(self):
-    #     # Initialize App
-    #     response = requests.delete(BASE + "clear")
-    #     self.assertEqual(response.status_code, 200)
-    #     req3InitJekyll = {
-    #         "name": "Jekyll",
-    #         "times": [
-    #             {"day": "2024-05-01", "startTime": "08:00", "endTime": "10:00"},
-    #         ],
-    #     }
-    #     response = requests.post(BASE + "submit", json=req3InitJekyll)
-    #     self.assertEqual(response.status_code, 202)
+        # Reject Bc Dr Doesnt exist
+        req3In3 = {
+            "patientName": "Boa",
+            "dateOfRequest": "2024-04-01",
+            "timeOfRequest": "08:03",
+            "appointmentSlot": {
+                "day": "2024-05-02",
+                "time": "08:00",
+                "drName": "JoMama",
+            },
+        }
+        response = requests.post(BASE + "reserve", json=req3In3)
+        self.assertEqual(response.status_code, 404)
 
-    #     # Basic Case
-    #     req3In2 = {
-    #         "patientName": "Aly",
-    #         "dateOfRequest": "2024-04-15",
-    #         "timeOfRequest": "08:03",
-    #         "appointmentSlot": {
-    #             "day": "2024-05-02",
-    #             "time": "08:00",
-    #             "drName": "Jekyll",
-    #         },
-    #     }
-    #     response = requests.post(BASE + "reserve", json=req3In2)
-    #     self.assertEqual(response.status_code, 202)
+        # Reject Bc Timeslot Doesnt exist
+        req3In4 = {
+            "patientName": "Loo",
+            "dateOfRequest": "2024-04-01",
+            "timeOfRequest": "08:03",
+            "appointmentSlot": {
+                "day": "2024-05-02",
+                "time": "22:00",
+                "drName": "Jekyll",
+            },
+        }
+        response = requests.post(BASE + "reserve", json=req3In4)
+        self.assertEqual(response.status_code, 404)
+
+        # Reject Bc Date Doesnt exist
+        req3In4 = {
+            "patientName": "Moo",
+            "dateOfRequest": "2024-04-01",
+            "timeOfRequest": "08:03",
+            "appointmentSlot": {
+                "day": "2024-12-02",
+                "time": "8:00",
+                "drName": "Jekyll",
+            },
+        }
+        response = requests.post(BASE + "reserve", json=req3In4)
+        self.assertEqual(response.status_code, 404)
+
+    # Test Successes
+    def test_requirement3General(self):
+        # Initialize App
+        response = requests.delete(BASE + "clear")
+        self.assertEqual(response.status_code, 200)
+        req3InitJekyll = {
+            "name": "Jekyll",
+            "times": [
+                {"day": "2024-05-01", "startTime": "08:00", "endTime": "10:00"},
+            ],
+        }
+        response = requests.post(BASE + "submit", json=req3InitJekyll)
+        self.assertEqual(response.status_code, 202)
+
+        # Basic Case
+        req3In2 = {
+            "patientName": "Aly",
+            "dateOfRequest": "2024-04-15",
+            "timeOfRequest": "08:03",
+            "appointmentSlot": {
+                "day": "2024-05-01",
+                "time": "08:00",
+                "drName": "Jekyll",
+            },
+        }
+        response = requests.post(BASE + "reserve", json=req3In2)
+        self.assertEqual(response.status_code, 202)
 
     # def test_r4(self):
     #     print("r4")

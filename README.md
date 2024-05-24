@@ -25,10 +25,9 @@ Allows a client to retrieve a list of available appointment slots. Appointment S
 
 ### Requirement 3
 
-Allows clients to reserve an available appointment slot.
+Allows clients to reserve an available appointment slot. Reservations must be made at least 24 hours in advance
 
-* User can only reserve one slot per endpoint call
-
+* Assume user can only reserve one slot per endpoint call
 
 ### Requirement 4
 
@@ -39,6 +38,7 @@ Allows clients to reserve an available appointment slot.
 * Add a Create Dr Endpoint
 * Improve the Documentation of each endpoint with Swagger
 * Use Data Transfer Objects
+* Incorporate unique IDs to drs and patients to avoid conflicts
 
 
 ## References and Tools Used

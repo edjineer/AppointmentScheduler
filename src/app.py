@@ -1,7 +1,14 @@
 from flask import Flask, request, jsonify
 from flasgger import Swagger, swag_from
 from flask_restful import Api, Resource
-from helpers import Doctor, printDrSchedule, isValidDateRequest
+from helpers import (
+    Doctor,
+    printDrSchedule,
+    isValidDateRequest,
+    isAvailableTimeSlot,
+    Appointment,
+)
+from datetime import datetime
 import pdb
 
 app = Flask(__name__)
@@ -82,23 +89,37 @@ class ReserveSlot(Resource):
         Request an appointment. Sample Valid Input is: {"patientName": "Aly","dateOfRequest": "2024-04-15", "timeOfRequest": "08:03", "appointmentSlot": {"day": "2024-05-02", "time": "08:00", "drName": "Jekyll"},
         ---
         responses:
-          200:
+          202:
             description: Success
           412:
             description: Violates 24 hour requirement
+          404:
+            description: Appointment Slot Not found
           500:
             description: Error
         """
         try:
-
             dataIn = request.get_json()
             print(dataIn)
-            if not isValidDateRequest(dataIn):
-                return {"message": "Reserved timeslot successfully"}, 412
             # Confirm that it is a valid request: Reservations must be made at least 24 hours in advance
+            if not isValidDateRequest(dataIn):
+                return {
+                    "message": "Error: reservation must be made more than 24 hours in advance"
+                }, 412
+            # Confirm that all data is valid
+            if not isAvailableTimeSlot(dataIn, DRDICT):
+                return {"message": "Error: Dr or Timeslot does not exist"}, 404
 
-            # Check for Conflicts
-            return {"message": "Reserved timeslot successfully"}, 200
+            # Make Booking
+            patientName = dataIn.get("patientName")
+            drName = dataIn.get("appointmentSlot")["drName"]
+            apptDate = dataIn.get("appointmentSlot")["day"]
+            apptTime = dataIn.get("appointmentSlot")["time"]
+            bookingStr = dataIn.get("dateOfRequest") + " " + dataIn.get("timeOfRequest")
+            bookingObj = datetime.strptime(bookingStr, "%Y-%m-%d %H:%M")
+            apptObj = Appointment(patientName, drName, bookingObj, apptDate, apptTime)
+            UNCONFIRMED_APPTS.append(apptObj)
+            return {"message": "Reserved timeslot successfully"}, 202
         except:
             return {"message": "Error clearing Dr Availability"}, 500
 

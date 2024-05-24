@@ -2,8 +2,8 @@ import requests
 
 
 def saveSwagger():
-    url = "http://localhost:5000/apispec_1.json"
-    outputFile = "docs/swagger.json"
+    url = "http://localhost:5000/apidocs"
+    outputFile = "../docs/swagger.json"
     response = requests.get(url)
     if response.status_code == 200:
         with open(outputFile, "w") as file:

@@ -45,12 +45,12 @@ class WorkingDay:
 
 
 class Appointment:
-    def __init__(self, patientName, drName):
+    def __init__(self, patientName, drName, bookingTime, apptDate, apptTime):
         self.patient = patientName
         self.dr = drName
-        self.appointmentDate = ""  # Should be YYYY-MM-DD
-        self.appointmentTime = ""  # Should be HH:MM
-        self.bookingTime = ""  # Will Be full datetimeOjb
+        self.appointmentDate = apptDate  # Should be YYYY-MM-DD
+        self.appointmentTime = apptTime  # Should be HH:MM
+        self.bookingTime = bookingTime  # Will Be full datetimeOjb
 
 
 # Utility to print all Drs Schedules
@@ -68,7 +68,6 @@ def printDrSchedule(inDict):
 # Data in is of the format: {"patientName": "Aly","dateOfRequest": "2024-04-15", "timeOfRequest": "08:03", "appointmentSlot": {"day": "2024-05-02", "time": "08:00", "drName": "Jekyll"}
 # Return false if it violates the 24 hours requirement
 def isValidDateRequest(dataIn):
-    pdb.set_trace()
     requestStr = dataIn.get("dateOfRequest") + " " + dataIn.get("timeOfRequest")
     requestDateObj = datetime.strptime(requestStr, "%Y-%m-%d %H:%M")
     apptData = dataIn.get("appointmentSlot")
@@ -76,6 +75,21 @@ def isValidDateRequest(dataIn):
     apptDateObj = datetime.strptime(apptStr, "%Y-%m-%d %H:%M")
     timeDifference = apptDateObj - requestDateObj
     if timeDifference.days > 0:
+        return True
+    return False
+
+
+# Data in is of the format: {"patientName": "Aly","dateOfRequest": "2024-04-15", "timeOfRequest": "08:03", "appointmentSlot": {"day": "2024-05-02", "time": "08:00", "drName": "Jekyll"}
+# Return false if appointment slot does not exist
+def isAvailableTimeSlot(dataIn, drDict):
+    drName = dataIn.get("appointmentSlot")["drName"]
+    if drName not in drDict:
+        return False
+    date = dataIn.get("appointmentSlot")["day"]
+    if date not in drDict[drName].workingDays:
+        return False
+    time = dataIn.get("appointmentSlot")["time"]
+    if time not in drDict[drName].workingDays[date].openTimes:
         return False
     return True
 
