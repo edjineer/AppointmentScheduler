@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flasgger import Swagger, swag_from
+from flasgger import Swagger
 from flask_restful import Api, Resource
 from helpers import (
     Doctor,
@@ -7,10 +7,14 @@ from helpers import (
     isValidDateRequest,
     isAvailableTimeSlot,
     Appointment,
+    manageExpirations,
 )
-import json
 from datetime import datetime
-import pdb
+import threading
+
+# Number of Seconds before checking if there are unconfirmed Appts.
+# It may be helpful to increase this value when testing
+REFRESH_RATE = 10
 
 app = Flask(__name__)
 api = Api(app)
@@ -20,6 +24,21 @@ CONFIRMED_APPTS = {}
 UNCONFIRMED_APPTS = {}
 
 swagger = Swagger(app)
+
+
+# Cancel appointments if they were created over 30 minutes ago
+def updateTime():
+    threading.Timer(REFRESH_RATE, updateTime).start()
+    currentTime = datetime.now()
+    itemsToRemove = manageExpirations(DRDICT, UNCONFIRMED_APPTS, currentTime)
+    for id in itemsToRemove:
+        print(
+            f"Appointment for {UNCONFIRMED_APPTS[id].patient} cancelled due to expiration."
+        )
+        UNCONFIRMED_APPTS.pop(id)
+
+
+updateTime()
 
 
 class SubmitDrAvailability(Resource):

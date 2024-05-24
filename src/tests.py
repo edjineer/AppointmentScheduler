@@ -1,9 +1,10 @@
 import unittest
 import requests
 from helpers import timeSplitter
-from flask import jsonify
-import pdb
+import time
 
+# NOTE: Make sure to edit double refresh for testing based on the app.py REFRESH_RATE
+DOUBLE_REFRESH = 20
 BASE = "http://127.0.0.1:5000/"
 
 
@@ -229,6 +230,45 @@ class EndpointTests(unittest.TestCase):
         req4In1 = {"bookingID": f"{bookingCode}"}
         response = requests.post(BASE + "confirm", json=req4In1)
         self.assertEqual(response.status_code, 200)
+
+    def test_timingReq(self):
+        # Initialize App
+        response = requests.delete(BASE + "clear")
+        self.assertEqual(response.status_code, 200)
+        req3InitJekyll = {
+            "name": "Jekyll",
+            "times": [
+                {"day": "2024-05-01", "startTime": "08:00", "endTime": "10:00"},
+            ],
+        }
+        response = requests.post(BASE + "submit", json=req3InitJekyll)
+        self.assertEqual(response.status_code, 202)
+
+        # Make a reservation
+        req3In2 = {
+            "patientName": "Aly",
+            "dateOfRequest": "2024-04-15",
+            "timeOfRequest": "08:03",
+            "appointmentSlot": {
+                "day": "2024-05-01",
+                "time": "08:00",
+                "drName": "Jekyll",
+            },
+        }
+        response = requests.post(BASE + "reserve", json=req3In2)
+        self.assertEqual(response.status_code, 202)
+        bookingCode1 = response.json()["bookingID"]
+
+        # Sleep for over the Refresh Rate
+        print(
+            f"Sleeping for {DOUBLE_REFRESH} seconds to test the expiration of appointments"
+        )
+        time.sleep(DOUBLE_REFRESH)
+
+        # Fail the Confirmation Endpoint, make sure not found since they expired
+        req4In1 = {"bookingID": f"{bookingCode1}"}
+        response = requests.post(BASE + "confirm", json=req4In1)
+        self.assertEqual(response.status_code, 404)
 
 
 class HelperUnitTests(unittest.TestCase):

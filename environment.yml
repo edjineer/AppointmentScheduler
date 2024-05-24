@@ -7,3 +7,4 @@ dependencies:
     - requests==2.32.2
     - flask-restful==0.3.10
     - datetime==5.5
+    - schedule==1.2.1

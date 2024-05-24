@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 import uuid
-import pdb
 
 APPT_INTERVAL = 15
+EXPIRATION_THRESHOLD = 30 * 60
 
 
 class Doctor:
@@ -129,3 +129,35 @@ def timeSplitter(startTime, endTime):
         timeItr += timedelta(minutes=APPT_INTERVAL)
 
     return returnArray
+
+
+# TODO: Work out the case of 24 hour rollover
+def cancelAppt(appt, drDict):
+    startTime = datetime.strptime(appt.appointmentTime, "%H:%M")
+    if startTime.minute >= 44:
+        newMins = 1
+        newHour = startTime.hour + 1
+    else:
+        newMins = startTime.minute + 16
+        newHour = startTime.hour
+    endMinutes = startTime.replace(minute=newMins, hour=newHour)
+    endTime = endMinutes.strftime("%H:%M")
+    drsNewTime = [
+        {
+            "day": f"{appt.appointmentDate}",
+            "startTime": f"{appt.appointmentTime}",
+            "endTime": f"{endTime}",
+        }
+    ]
+    drDict[appt.dr].addSlotsToWorkingSchedule(drsNewTime)
+
+
+# Tradeoffs: very wasteful on space
+def manageExpirations(drDict, unconfirmedDict, currentTime):
+    removeList = []
+    for id, appt in unconfirmedDict.items():
+        difference = currentTime - appt.bookingTime
+        if difference.seconds > EXPIRATION_THRESHOLD:
+            cancelAppt(appt, drDict)
+            removeList.append(id)
+    return removeList

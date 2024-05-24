@@ -45,8 +45,11 @@ Allows clients to reserve an available appointment slot. Reservations must be ma
 
 Allows clients to confirm their reservation.
 
+* This API will check the unconfirmed appointments every 30 seconds to see if the appointment needs to be cancelled due to no confirmation. The appointment will be cancelled if the time difference between the current time and booking date (set by the request API) is greater than 30 minutes.
+
 ## Next Steps
 
+* Improve Thread Safety for Expired Appointments, and enable more graceful exits
 * Add a "Create Dr" Endpoint
 * Incorporate a more robust database into this app
 * Improve the Documentation of each endpoint with Swagger
@@ -54,6 +57,7 @@ Allows clients to confirm their reservation.
 * Incorporate unique IDs to drs and patients to avoid conflicts
 * Build out a Client Class
 * Improve the Confirmation system
+* Test if there is any 24 hour rollover for night owl drs
 
 ## References and Tools Used
 
@@ -67,6 +71,6 @@ Allows clients to confirm their reservation.
 
 * Swagger Set up: https://diptochakrabarty.medium.com/flask-python-swagger-for-rest-apis-6efdf0100bd7
 * Refresher Tutorial for Flask: https://www.youtube.com/watch?v=GMppyAPbLYk
-* Learning the Python Schedule Library: https://www.geeksforgeeks.org/python-schedule-library/
 * Datetime Tutorial: https://www.w3schools.com/python/python_datetime.asp
 * UUID Generation: https://www.uuidgenerator.net/dev-corner/python#google_vignette
+* Python Threading Info and Documentation: https://docs.python.org/3/library/threading.html#timer-objects https://stackoverflow.com/questions/3393612/run-certain-code-every-n-seconds https://stackoverflow.com/questions/5952910/python-cancel-timer-thread
