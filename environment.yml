@@ -1,0 +1,9 @@
+name: ApptScheduler
+dependencies: 
+  - python=3.10
+  - pip:
+    - flask==3.0.3
+    - flasgger==0.9.7.1 
+    - requests==2.32.2
+    - flask-restful==0.3.10
+    - datetime==5.5
